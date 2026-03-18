@@ -1,0 +1,6 @@
+version: 2.9.3
+apkFileName: USA_ELITE.apk
+isFrameworkApk: false
+packageInfo:
+  forcedPackageId: '127'
+
